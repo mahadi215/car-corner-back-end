@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
@@ -93,6 +93,21 @@ async function run(){
                 const options = await advertisementItemsCollection.find(query).toArray();
                 res.send(options);
             });
+
+
+            app.put('/allCategories/advertisment/:id', async(req, res)=>{
+                const id = req.params.id;
+                const filter = {_id: ObjectId(id)};
+                const option = { upsert: true};
+                const updatedDoc = {
+                    $set: {
+                        ADstutas: 'Advertised'
+                    }
+                }
+                const result = await allCategories.updateOne(filter, option, updatedDoc);
+                res.send(result);
+            })
+
         }
         finally{
 
