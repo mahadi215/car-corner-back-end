@@ -46,9 +46,23 @@ async function run(){
                 res.send(result);
             })
 
+            
+            app.get('/advertisment', async(req, res)=>{
+                const query ={ ADstatus: "Advertised"};
+                // console.log(query);
+                const options = await allCategories.find(query).toArray();
+                res.send(options);
+            });
+
             // app.get("/allCategories", (req, res)=>{
             //     res.send(req.query);
             //   })
+
+            const usersCollection = client.db('car_corner').collection('users');
+            app.post('/users', async(req, res)=>{
+                const user = req.body;
+                const result = await usersCollection.insertOne(user)
+            })
 
             app.post('/allCategories', async(req, res)=>{
                 const product = req.body;
@@ -88,11 +102,7 @@ async function run(){
                 res.send(result)
             })
 
-            app.post('/advertisementItems', async(req, res)=>{
-                const query ={};
-                const options = await advertisementItemsCollection.find(query).toArray();
-                res.send(options);
-            });
+           
 
 
             app.put('/allCategories/advertisment/:id', async(req, res)=>{
