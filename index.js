@@ -97,14 +97,15 @@ async function run(){
 
             app.put('/allCategories/advertisment/:id', async(req, res)=>{
                 const id = req.params.id;
+                console.log(id);
                 const filter = {_id: ObjectId(id)};
                 const option = { upsert: true};
                 const updatedDoc = {
                     $set: {
-                        ADstutas: 'Advertised'
+                        ADstatus: 'Advertised'
                     }
                 }
-                const result = await allCategories.updateOne(filter, option, updatedDoc);
+                const result = await allCategories.updateOne(filter, updatedDoc, option);
                 res.send(result);
             })
 
