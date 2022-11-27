@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const jwt = require('jsonsonwebtoken');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
@@ -14,6 +14,20 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.x4kttba.mongodb.net/?retryWrites=true&w=majority`;
 console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+function jwtVerify(req, res, next){
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        return res.status(401).send('unauthorized access')
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
+        if(err){
+            return res.status(403).send({message: 'forbidden acces'})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 async function run(){
         try{
             const categorieName = client.db('car_corner').collection('categorie_name');
@@ -38,10 +52,14 @@ async function run(){
                 const result = await allCategories.find(query).toArray();
                 res.send(result);
             })
-            app.get('/myProducts/:email', async(req,res)=>{
+            app.get('/myProducts/:email', jwtVerify, async(req,res)=>{
                 const email = req.params.email;
                 // console.log(email);
-                const cursur ={SellerEmail: email};
+                const decodedEmail = req.decoded.email;
+                if(email !== decodedEmail){
+                    return res.status(403).send({message: 'forbidden access'})
+                }
+                const cursur = {SellerEmail: email};
                 // console.log(cursur);
                 const result = await allCategories.find(cursur).toArray();
                 res.send(result);
@@ -54,6 +72,37 @@ async function run(){
                 const options = await allCategories.find(query).toArray();
                 res.send(options);
             });
+
+            app.get('/users/admin/:email', async(req, res)=>{
+                const email = req.params.email;
+                const query = {email: email};
+                const result = await usersCollection.findOne(query);
+                res.send({isAdmin: result?.role === 'Admin'})
+            })
+            app.get('/users/seller/:email', async(req, res)=>{
+                const email = req.params.email;
+                const query = {email: email};
+                const result = await usersCollection.findOne(query);
+                res.send({isSeller: result?.role === 'Seller'})
+            })
+            app.get('/users/buyer/:email', async(req, res)=>{
+                const email = req.params.email;
+                const query = {email: email};
+                const result = await usersCollection.findOne(query);
+                res.send({isBuyer: result?.role === 'Buyer'})
+            })
+
+            app.get('/allusers', async(req,res)=>{
+                const query = { role: "Buyer"}
+                const result = await usersCollection.find(query).toArray();
+                res.send(result)
+            })
+
+            app.get('/allsellers', async(req,res)=>{
+                const query = { role: "Seller"}
+                const result = await usersCollection.find(query).toArray();
+                res.send(result)
+            })
 
             // app.get("/allCategories", (req, res)=>{
             //     res.send(req.query);
@@ -70,9 +119,10 @@ async function run(){
             app.get('/jwt', async(req, res)=>{
                 const email = req.query.email;
                 const query = { email: email};
+                console.log(query);
                 const result = await usersCollection.findOne(query);
                 if(result){
-                    const token = jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '5h'});
+                    const token = jwt.sign({email}, process.env.ACCESS_TOKEN, {expiresIn: '7d'});
                     return res.send({accessToken: token})
                 }
                 res.status(403).send({accessToken: 'not found'})
