@@ -65,6 +65,19 @@ async function run(){
                 res.send(result);
             })
 
+            app.get('/mybookings/:email', jwtVerify, async(req,res)=>{
+                const email = req.params.email;
+                // console.log(email);
+                const decodedEmail = req.decoded.email;
+                if(email !== decodedEmail){
+                    return res.status(403).send({message: 'forbidden access'})
+                }
+                const cursur = {BuyerEmail: email};
+                // console.log(cursur);
+                const result = await bookingCollection.find(cursur).toArray();
+                res.send(result);
+            })
+
             
             app.get('/advertisment', async(req, res)=>{
                 const query ={ ADstatus: "Advertised"};
@@ -73,6 +86,12 @@ async function run(){
                 res.send(options);
             });
 
+            // app.get('/mybookings/:email', async(req, res)=>{
+            //     const email = req.params.email;
+            //     const query = {email: email};
+            //     const result = await usersCollection.findOne(query);
+            //     res.send({isAdmin: result?.role === 'Admin'})
+            // })
             app.get('/users/admin/:email', async(req, res)=>{
                 const email = req.params.email;
                 const query = {email: email};
@@ -155,6 +174,7 @@ async function run(){
                 console.log(booking);
                 const query = {
                     CarName:booking.CarName,
+                    imgURL:booking.imgURL,
                      CarPrice:booking.CarPrice,
                      Condition:booking.Condition,
                      BuyerEmail:booking.BuyerEmail,
