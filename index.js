@@ -45,12 +45,6 @@ async function run(){
                 res.send(options);
             });
 
-            app.get('/verifying', async(req, res)=>{
-                const query ={};
-                const options = await allCategories.find(query).toArray();
-                res.send(options);
-            });
-
             
             app.get('/allCategories/:id', async(req,res)=>{
                 const id = req.params.id;
