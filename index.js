@@ -203,6 +203,45 @@ async function run(){
                 res.send(result);
             })
 
+            // make verify
+            app.put('/allCategories/makeverify/:email', async(req, res)=>{
+                const email = req.params.email;
+                console.log(email);
+                const filter = {SellerEmail: email};
+                const option = { upsert: true};
+                const updatedDoc = {
+                    $set: {
+                        Verifystatus: 'Verify'
+                    }
+                }
+                const user = await allCategories.findOne(filter)
+                if(!user){
+                    return res.status(404).send({message: 'seller dont have any product'})
+                }
+                else{
+                    const result = await allCategories.updateMany(filter, updatedDoc, option);
+                    return res.send(result)
+                }
+                
+            })
+
+             // delete product
+            app.delete('/allCategories/delete/:id', jwtVerify, async (req, res) => {
+                const id = req.params.id;
+                console.log(id);
+                const filter = { _id: ObjectId(id) };
+                const result = await allCategories.deleteOne(filter);
+                res.send(result);
+            })
+
+            // delete user
+            app.delete('/users/deleteUsers/:email', jwtVerify, async (req, res) => {
+                const email = req.params.email;
+                const filter = { email: email };
+                const result = await usersCollection.deleteOne(filter);
+                res.send(result);
+            })
+
         }
         finally{
 
