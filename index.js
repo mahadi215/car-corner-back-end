@@ -37,6 +37,7 @@ async function run(){
                 res.send(options);
             });
 
+            const allCategories = client.db('car_corner').collection('all_categories');
             const advertisementItemsCollection = client.db('car_corner').collection('advertisementItems');
             app.get('/advertisementItems', async(req, res)=>{
                 const query ={};
@@ -44,7 +45,13 @@ async function run(){
                 res.send(options);
             });
 
-            const allCategories = client.db('car_corner').collection('all_categories');
+            app.get('/verifying', async(req, res)=>{
+                const query ={};
+                const options = await allCategories.find(query).toArray();
+                res.send(options);
+            });
+
+            
             app.get('/allCategories/:id', async(req,res)=>{
                 const id = req.params.id;
                 const query ={categorie_id:id};
@@ -52,6 +59,7 @@ async function run(){
                 const result = await allCategories.find(query).toArray();
                 res.send(result);
             })
+
             app.get('/myProducts/:email', jwtVerify, async(req,res)=>{
                 const email = req.params.email;
                 // console.log(email);
@@ -131,6 +139,23 @@ async function run(){
             app.post('/users', async(req, res)=>{
                 const user = req.body;
                 const result = await usersCollection.insertOne(user)
+            });
+             
+            // googleuser
+            app.post('/googleusers', async(req, res)=>{
+                const user = req.body;
+                const userEmail = req.body.email;
+                console.log(userEmail);
+                const query = {email: userEmail};
+                const filter = await usersCollection.findOne(query);
+                if(filter){
+                    return res.status(403).send({message: 'email already exist'});
+                }
+                else{
+                    const result = await usersCollection.insertOne(user);
+                    return res.send(result);
+                }
+                
             });
 
             // jwt
